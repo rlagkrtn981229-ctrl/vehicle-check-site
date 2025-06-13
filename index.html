@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>기린인력 차량정보 조회</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f0f0; padding: 2rem; text-align: center; }
+    .container { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+    input, button { padding: 0.5rem; margin-top: 1rem; width: 80%; font-size: 1rem; }
+    .result { margin-top: 1.5rem; background: #eee; padding: 1rem; border-radius: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>기린인력 차량정보 조회</h2>
+    <input type="text" id="nameInput" placeholder="이름을 입력하세요">
+    <br>
+    <button onclick="lookup()">조회하기</button>
+    <div class="result" id="resultBox" style="display:none;"></div>
+  </div>
+
+ <script>
+  // 차량 A - 71마1375이기사님 빨간차 - 코스원
+  const namesA = [
+    "이순옥", "김명애", "전해흠", "두수춘", "이정문",
+    "양영", "강쌍영", "장홍화", "마향화", "이희자",
+    "성정실", "유해아", "최길란", "원명희", "정장자",
+    "권홍옥", "오련화", "윤계화", "박홍화", "도복순",
+    "이영란", "이인봉"
+  ];
+  const commonA = {
+    company: "코스원",
+    time: "07:00",
+    car: "71마1375",
+    color: "빨강"
+  };
+
+  // 차량 B - 72두8560 이옥진기사님 -헵스켐
+  const namesB = ["유영달", "정일"];
+  const commonB = {
+    company: "헵스켐",
+    time: "07:00",
+    car: "72두8560",
+    color: "노랑"
+  };
+
+  // 차량 C - 72두8560 이옥진기사님
+  const namesC = ["이선자", "홍정순", "박림군"];
+  const commonC = {
+    company: "이시스코스메틱",
+    time: "07:00",
+    car: "72두8560",
+    color: "노랑"
+  };
+
+  // 전체 데이터 병합
+  const data = [
+    ...namesA.map(name => ({ name, ...commonA })),
+    ...namesB.map(name => ({ name, ...commonB })),
+    ...namesC.map(name => ({ name, ...commonC }))
+  ];
+
+  function lookup() {
+    const nameInput = document.getElementById('nameInput').value.trim();
+    const result = data.find(d => d.name === nameInput);
+    const resultBox = document.getElementById('resultBox');
+
+    if (result) {
+      resultBox.innerHTML = `
+        <strong>업체명:</strong> ${result.company}<br>
+        <strong>출발시간:</strong> ${result.time}<br>
+        <strong>차량번호:</strong> ${result.car}<br>
+        <strong>색상:</strong> ${result.color}
+      `;
+      resultBox.style.display = 'block';
+    } else {
+      resultBox.innerHTML = "해당 이름의 정보를 찾을 수 없습니다.";
+      resultBox.style.display = 'block';
+    }
+  }
+</script>
+</body>
+</html>
