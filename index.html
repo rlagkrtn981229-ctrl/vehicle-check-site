@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -29,7 +28,6 @@
       <button class="close-btn" onclick="closeAdmin()">×</button>
       <h3>🚧 관리자 정보 추가/수정/삭제</h3>
       <input type="text" id="adminName" placeholder="이름">
-
       <select id="adminCompany">
         <option disabled selected>업체명 선택</option>
         <option>코스원</option><option>예그리나</option><option>유씨엘</option><option>헵스켐</option><option>이시스코스메틱</option>
@@ -38,25 +36,20 @@
         <option>ES코스메틱</option><option>코스페이스</option><option>유니클로버</option><option>NFC</option><option>중앙바이오텍</option>
         <option>하이게인안테나</option><option>동인전기</option><option>삼성포리머</option><option>탭코리아</option><option>엔피엠텍</option><option>제일바이오</option>
       </select>
-
       <select id="adminTime">
         <option disabled selected>출발시간 선택</option>
         <option>07:00</option><option>07:30</option><option>08:00</option>
       </select>
-
       <select id="adminCar">
         <option disabled selected>차량번호 선택</option>
         <option>77보9040</option><option>75보7727</option><option>71마1375</option><option>71다1165</option><option>71보6549</option>
         <option>72두8789</option><option>2721(하이게인)</option><option>8232(남동)</option><option>15人탕기사</option>
       </select>
-
       <select id="adminColor">
         <option disabled selected>차량 색상 선택</option>
         <option>노란색</option><option>파란색</option><option>은색</option><option>빨간색</option>
       </select>
-
-      <button onclick="addData()">추가/수정</button>
-      <button onclick="deleteData()" style="background: #f44336; color: white;">삭제</button>
+      <button onclick="addData()">추가</button>
       <div id="adminNotice" style="margin-top: 1rem; color: green;"></div>
       <h4 style="margin-top: 2rem;">👥 현재 등록된 근로자 목록</h4>
       <div class="worker-list" id="workerList"></div>
@@ -64,7 +57,14 @@
   </div>
 
   <script>
+    const sheetURL = "https://script.google.com/macros/s/AKfycbxzM7VroFml9mby3bYecfNGtEb7JknSXdHiExRxGnSqgxveM_dBJE7RfHSAmVcfAw4k/exec";
     let data = [];
+
+    async function fetchData() {
+      const res = await fetch(sheetURL);
+      data = await res.json();
+      updateWorkerList();
+    }
 
     function lookup() {
       const nameInput = document.getElementById('nameInput').value.trim();
@@ -78,19 +78,17 @@
           <strong>차량번호:</strong> ${result.car}<br>
           <strong>색상:</strong> ${result.color}
         `;
-        resultBox.style.display = 'block';
       } else {
         resultBox.innerHTML = "해당 이름의 정보를 찾을 수 없습니다.";
-        resultBox.style.display = 'block';
       }
+      resultBox.style.display = 'block';
     }
 
     function checkPassword() {
       const input = document.getElementById('adminPass').value;
-      const panel = document.getElementById('adminPanel');
       if (input === '1234') {
-        panel.style.display = 'block';
-        updateWorkerList();
+        document.getElementById('adminPanel').style.display = 'block';
+        fetchData();
       } else {
         alert("비밀번호가 틀렸습니다.");
       }
@@ -100,7 +98,7 @@
       document.getElementById('adminPanel').style.display = 'none';
     }
 
-    function addData() {
+    async function addData() {
       const name = document.getElementById('adminName').value.trim();
       const company = document.getElementById('adminCompany').value;
       const time = document.getElementById('adminTime').value;
@@ -114,38 +112,24 @@
         return;
       }
 
-      const index = data.findIndex(d => d.name === name);
-      if (index !== -1) {
-        data[index] = { name, company, time, car, color };
-        notice.style.color = 'blue';
-        notice.innerText = '기존 정보가 수정되었습니다.';
-      } else {
-        data.push({ name, company, time, car, color });
-        notice.style.color = 'green';
-        notice.innerText = '새 정보가 추가되었습니다.';
-      }
-      updateWorkerList();
-    }
-
-    function deleteData() {
-      const name = document.getElementById('adminName').value.trim();
-      const notice = document.getElementById('adminNotice');
-      const index = data.findIndex(d => d.name === name);
-      if (index !== -1) {
-        data.splice(index, 1);
-        notice.style.color = 'orange';
-        notice.innerText = '해당 인원이 삭제되었습니다.';
-      } else {
-        notice.style.color = 'red';
-        notice.innerText = '삭제할 인원이 존재하지 않습니다.';
-      }
-      updateWorkerList();
+      await fetch(sheetURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name, company, time, car, color })
+      });
+      notice.style.color = 'green';
+      notice.innerText = '추가 완료';
+      fetchData();
     }
 
     function updateWorkerList() {
       const listBox = document.getElementById('workerList');
       listBox.innerHTML = data.map(d => `<div><strong>${d.name}</strong> - ${d.company}, ${d.time}, ${d.car}, ${d.color}</div>`).join('');
     }
+
+    fetchData();
   </script>
 </body>
 </html>
