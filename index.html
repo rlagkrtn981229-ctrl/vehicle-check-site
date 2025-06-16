@@ -23,16 +23,38 @@
     <div class="result" id="resultBox" style="display:none;"></div>
     <hr>
     <input type="password" id="adminPass" placeholder="비밀번호 입력">
-    <button onclick="checkPassword()">어드민 접속</button>
+    <button onclick="checkPassword()">관리자 접속</button>
 
     <div class="admin-panel" id="adminPanel">
       <button class="close-btn" onclick="closeAdmin()">×</button>
       <h3>🚧 관리자 정보 추가/수정/삭제</h3>
       <input type="text" id="adminName" placeholder="이름">
-      <input type="text" id="adminCompany" placeholder="업체명">
-      <input type="text" id="adminTime" placeholder="출발시간 (예: 07:00)">
-      <input type="text" id="adminCar" placeholder="차량번호">
-      <input type="text" id="adminColor" placeholder="차량 색상">
+
+      <select id="adminCompany">
+        <option disabled selected>업체명 선택</option>
+        <option>코스원</option><option>예그리나</option><option>유씨엘</option><option>헵스켐</option><option>이시스코스메틱</option>
+        <option>뷰랜코리아</option><option>화인글로벌랩</option><option>에스투제약</option><option>피엘코스메틱</option><option>네이처인트로</option>
+        <option>리즈코스</option><option>비알코스</option><option>대한생명바이오</option><option>에스앤제이</option><option>잉글우드랩</option>
+        <option>ES코스메틱</option><option>코스페이스</option><option>유니클로버</option><option>NFC</option><option>중앙바이오텍</option>
+        <option>하이게인안테나</option><option>동인전기</option><option>삼성포리머</option><option>탭코리아</option><option>엔피엠텍</option><option>제일바이오</option>
+      </select>
+
+      <select id="adminTime">
+        <option disabled selected>출발시간 선택</option>
+        <option>07:00</option><option>07:30</option><option>08:00</option>
+      </select>
+
+      <select id="adminCar">
+        <option disabled selected>차량번호 선택</option>
+        <option>77보9040</option><option>75보7727</option><option>71마1375</option><option>71다1165</option><option>71보6549</option>
+        <option>72두8789</option><option>2721(하이게인)</option><option>8232(남동)</option><option>15人탕기사</option>
+      </select>
+
+      <select id="adminColor">
+        <option disabled selected>차량 색상 선택</option>
+        <option>노란색</option><option>파란색</option><option>은색</option><option>빨간색</option>
+      </select>
+
       <button onclick="addData()">추가/수정</button>
       <button onclick="deleteData()" style="background: #f44336; color: white;">삭제</button>
       <div id="adminNotice" style="margin-top: 1rem; color: green;"></div>
@@ -42,13 +64,7 @@
   </div>
 
   <script>
-    let data = [
-      ...["이순옥", "김명애", "전해흠", "두수춘", "이정문", "양영", "강쌍영", "장홍화", "마향화", "이희자", "성정실", "유해아", "최길란", "원명희", "정장자", "권홍옥", "오련화", "윤계화", "박홍화", "도복순", "이영란", "이인봉"].map(name => ({ name, company: "코스원", time: "07:00", car: "71마1375", color: "빨강" })),
-      ...["유영달", "정일"].map(name => ({ name, company: "헵스켐", time: "07:00", car: "72두8560", color: "노랑" })),
-      ...["이선자", "홍정순", "박림군"].map(name => ({ name, company: "이시스코스메틱", time: "07:00", car: "72두8560", color: "노랑" })),
-      ...["현영화", "정외숙", "서계영", "김해순", "한순녀", "이경숙", "이금복", "최옥순", "김생월", "남복순", "퍼리다", "이금화", "양효민", "김인자", "가문하", "최원신", "전익화", "오시정", "김찬민", "최철호", "박한철", "민문섭", "현창학", "박영준", "황동춘", "이용"].map(name => ({ name, company: "예그리나", time: "07:30", car: "75보7727", color: "파랑" })),
-      ...["홍길자", "이진숙", "정미라"].map(name => ({ name, company: "유씨엘", time: "07:30", car: "75보7727", color: "파랑" }))
-    ];
+    let data = [];
 
     function lookup() {
       const nameInput = document.getElementById('nameInput').value.trim();
@@ -86,15 +102,15 @@
 
     function addData() {
       const name = document.getElementById('adminName').value.trim();
-      const company = document.getElementById('adminCompany').value.trim();
-      const time = document.getElementById('adminTime').value.trim();
-      const car = document.getElementById('adminCar').value.trim();
-      const color = document.getElementById('adminColor').value.trim();
+      const company = document.getElementById('adminCompany').value;
+      const time = document.getElementById('adminTime').value;
+      const car = document.getElementById('adminCar').value;
+      const color = document.getElementById('adminColor').value;
       const notice = document.getElementById('adminNotice');
 
       if (!name || !company || !time || !car || !color) {
         notice.style.color = 'red';
-        notice.innerText = '모든 항목을 입력하세요.';
+        notice.innerText = '모든 항목을 입력 또는 선택하세요.';
         return;
       }
 
@@ -114,7 +130,6 @@
     function deleteData() {
       const name = document.getElementById('adminName').value.trim();
       const notice = document.getElementById('adminNotice');
-
       const index = data.findIndex(d => d.name === name);
       if (index !== -1) {
         data.splice(index, 1);
