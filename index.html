@@ -101,6 +101,26 @@
     }
 
     function addData() {
+  const name = document.getElementById('nameInput').value;
+  const company = document.getElementById('companyInput').value;
+  const time = document.getElementById('timeInput').value;
+  const car = document.getElementById('carInput').value;
+  const color = document.getElementById('colorInput').value;
+
+  fetch("https://script.google.com/macros/s/AKfycbwuk8uiHDsi3_ykH3wupFno9IMEhHJjkJckHOgW_5fOaCgNnAtxDpgKdmW9znHOCBZiaQ/exec?name=" + encodeURIComponent(name) + 
+        "&company=" + encodeURIComponent(company) + 
+        "&time=" + encodeURIComponent(time) + 
+        "&car=" + encodeURIComponent(car) + 
+        "&color=" + encodeURIComponent(color))
+    .then(response => response.text())
+    .then(result => {
+      console.log("추가 결과:", result);
+      fetchData(); // 추가 후 목록 새로고침
+    })
+    .catch(error => {
+      console.error("추가 실패:", error);
+    });
+
       const name = document.getElementById('adminName').value.trim();
       const company = document.getElementById('adminCompany').value;
       const time = document.getElementById('adminTime').value;
