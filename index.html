@@ -6,9 +6,12 @@
   <title>기린인력 차량정보 조회</title>
   <style>
     body { font-family: sans-serif; background: #f0f0f0; padding: 2rem; text-align: center; }
-    .container { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-    input, button { padding: 0.5rem; margin-top: 1rem; width: 80%; font-size: 1rem; }
+    .container { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+    input, button, select { padding: 0.5rem; margin-top: 0.5rem; width: 80%; font-size: 1rem; }
     .result { margin-top: 1.5rem; background: #eee; padding: 1rem; border-radius: 0.5rem; }
+    .admin-panel { margin-top: 2rem; padding: 1rem; background: #e0f7fa; border-radius: 1rem; display: none; position: relative; }
+    .close-btn { position: absolute; top: 10px; right: 20px; background: red; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
+    .worker-list { text-align: left; max-height: 200px; overflow-y: auto; background: #fff; border: 1px solid #ccc; padding: 1rem; margin-top: 1rem; border-radius: 0.5rem; }
   </style>
 </head>
 <body>
@@ -18,113 +21,116 @@
     <br>
     <button onclick="lookup()">조회하기</button>
     <div class="result" id="resultBox" style="display:none;"></div>
+    <hr>
+    <input type="password" id="adminPass" placeholder="비밀번호 입력">
+    <button onclick="checkPassword()">어드민 접속</button>
+
+    <div class="admin-panel" id="adminPanel">
+      <button class="close-btn" onclick="closeAdmin()">×</button>
+      <h3>🚧 관리자 정보 추가/수정/삭제</h3>
+      <input type="text" id="adminName" placeholder="이름">
+      <input type="text" id="adminCompany" placeholder="업체명">
+      <input type="text" id="adminTime" placeholder="출발시간 (예: 07:00)">
+      <input type="text" id="adminCar" placeholder="차량번호">
+      <input type="text" id="adminColor" placeholder="차량 색상">
+      <button onclick="addData()">추가/수정</button>
+      <button onclick="deleteData()" style="background: #f44336; color: white;">삭제</button>
+      <div id="adminNotice" style="margin-top: 1rem; color: green;"></div>
+      <h4 style="margin-top: 2rem;">👥 현재 등록된 근로자 목록</h4>
+      <div class="worker-list" id="workerList"></div>
+    </div>
   </div>
 
- <script>
-  // 차량 A - 71마1375이기사님 빨간차 - 코스원
-  const namesA = [
-    "이순옥", "김명애", "전해흠", "두수춘", "이정문",
-    "양영", "강쌍영", "장홍화", "마향화", "이희자",
-    "성정실", "유해아", "최길란", "원명희", "정장자",
-    "권홍옥", "오련화", "윤계화", "박홍화", "도복순",
-    "이영란", "이인봉"
-  ];
-  const commonA = {
-    company: "코스원",
-    time: "07:00",
-    car: "71마1375",
-    color: "빨강"
-  };
+  <script>
+    let data = [
+      ...["이순옥", "김명애", "전해흠", "두수춘", "이정문", "양영", "강쌍영", "장홍화", "마향화", "이희자", "성정실", "유해아", "최길란", "원명희", "정장자", "권홍옥", "오련화", "윤계화", "박홍화", "도복순", "이영란", "이인봉"].map(name => ({ name, company: "코스원", time: "07:00", car: "71마1375", color: "빨강" })),
+      ...["유영달", "정일"].map(name => ({ name, company: "헵스켐", time: "07:00", car: "72두8560", color: "노랑" })),
+      ...["이선자", "홍정순", "박림군"].map(name => ({ name, company: "이시스코스메틱", time: "07:00", car: "72두8560", color: "노랑" })),
+      ...["현영화", "정외숙", "서계영", "김해순", "한순녀", "이경숙", "이금복", "최옥순", "김생월", "남복순", "퍼리다", "이금화", "양효민", "김인자", "가문하", "최원신", "전익화", "오시정", "김찬민", "최철호", "박한철", "민문섭", "현창학", "박영준", "황동춘", "이용"].map(name => ({ name, company: "예그리나", time: "07:30", car: "75보7727", color: "파랑" })),
+      ...["홍길자", "이진숙", "정미라"].map(name => ({ name, company: "유씨엘", time: "07:30", car: "75보7727", color: "파랑" }))
+    ];
 
-  // 차량 B - 72두8560 이옥진기사님 -헵스켐
-  const namesB = ["유영달", "정일"];
-  const commonB = {
-    company: "헵스켐",
-    time: "07:00",
-    car: "72두8560",
-    color: "노랑"
-  };
+    function lookup() {
+      const nameInput = document.getElementById('nameInput').value.trim();
+      const result = data.find(d => d.name === nameInput);
+      const resultBox = document.getElementById('resultBox');
 
-  // 차량 C - 72두8560 이옥진기사님
-  const namesC = ["이선자", "홍정순", "박림군"];
-  const commonC = {
-    company: "이시스코스메틱",
-    time: "07:00",
-    car: "72두8560",
-    color: "노랑"
-  };
-
-  // 차량 D - 75보7727 유승민팀장님
-  const namesD = ["현영화", "정외숙", "서계영", "김해순", "한순녀",
-                  "이경숙", "이금복", "최옥순", "김생월", "남복순",
-                  "퍼리다", "이금화", "양효민", "김인자", "가문하",
-                  "최원신", "전익화", "오시정", "김찬민", "최철호",
-                  "박한철", "민문섭", "현창학", "박영준", "황동춘",
-                  "이용"];
- 
-  const commonD = {
-    company: "예그리나",
-    time: "07:30",
-    car: "75보7727",
-    color: "파랑"
-  };
-
-  // 차량 E - 72두8560 이옥진기사님
-  const namesE = ["이선자", "홍정순", "박림군"];
-  const commonE = {
-    company: "이시스코스메틱",
-    time: "07:00",
-    car: "72두8560",
-    color: "노랑"
-  };
-
-  // 차량 F - 72두8560 이옥진기사님
-  const namesF = ["이선자", "홍정순", "박림군"];
-  const commonF = {
-    company: "이시스코스메틱",
-    time: "07:00",
-    car: "72두8560",
-    color: "노랑"
-  };
-
-  // 차량 G - 72두8560 이옥진기사님
-  const namesG = ["이선자", "홍정순", "박림군"];
-  const commonG = {
-    company: "이시스코스메틱",
-    time: "07:00",
-    car: "72두8560",
-    color: "노랑"
-  };
-
-  // 전체 데이터 병합
-  const data = [
-    ...namesA.map(name => ({ name, ...commonA })),
-    ...namesB.map(name => ({ name, ...commonB })),
-    ...namesC.map(name => ({ name, ...commonC })),
-    ...namesD.map(name => ({ name, ...commonD })),
-    ...namesE.map(name => ({ name, ...commonE })),
-    ...namesF.map(name => ({ name, ...commonF })),
-    ...namesG.map(name => ({ name, ...commonG }))
-  ];
-
-  function lookup() {
-    const nameInput = document.getElementById('nameInput').value.trim();
-    const result = data.find(d => d.name === nameInput);
-    const resultBox = document.getElementById('resultBox');
-
-    if (result) {
-      resultBox.innerHTML = `
-        <strong>업체명:</strong> ${result.company}<br>
-        <strong>출발시간:</strong> ${result.time}<br>
-        <strong>차량번호:</strong> ${result.car}<br>
-        <strong>색상:</strong> ${result.color}
-      `;
-      resultBox.style.display = 'block';
-    } else {
-      resultBox.innerHTML = "해당 이름의 정보를 찾을 수 없습니다.";
-      resultBox.style.display = 'block';
+      if (result) {
+        resultBox.innerHTML = `
+          <strong>업체명:</strong> ${result.company}<br>
+          <strong>출발시간:</strong> ${result.time}<br>
+          <strong>차량번호:</strong> ${result.car}<br>
+          <strong>색상:</strong> ${result.color}
+        `;
+        resultBox.style.display = 'block';
+      } else {
+        resultBox.innerHTML = "해당 이름의 정보를 찾을 수 없습니다.";
+        resultBox.style.display = 'block';
+      }
     }
-  }
-</script>
+
+    function checkPassword() {
+      const input = document.getElementById('adminPass').value;
+      const panel = document.getElementById('adminPanel');
+      if (input === '1234') {
+        panel.style.display = 'block';
+        updateWorkerList();
+      } else {
+        alert("비밀번호가 틀렸습니다.");
+      }
+    }
+
+    function closeAdmin() {
+      document.getElementById('adminPanel').style.display = 'none';
+    }
+
+    function addData() {
+      const name = document.getElementById('adminName').value.trim();
+      const company = document.getElementById('adminCompany').value.trim();
+      const time = document.getElementById('adminTime').value.trim();
+      const car = document.getElementById('adminCar').value.trim();
+      const color = document.getElementById('adminColor').value.trim();
+      const notice = document.getElementById('adminNotice');
+
+      if (!name || !company || !time || !car || !color) {
+        notice.style.color = 'red';
+        notice.innerText = '모든 항목을 입력하세요.';
+        return;
+      }
+
+      const index = data.findIndex(d => d.name === name);
+      if (index !== -1) {
+        data[index] = { name, company, time, car, color };
+        notice.style.color = 'blue';
+        notice.innerText = '기존 정보가 수정되었습니다.';
+      } else {
+        data.push({ name, company, time, car, color });
+        notice.style.color = 'green';
+        notice.innerText = '새 정보가 추가되었습니다.';
+      }
+      updateWorkerList();
+    }
+
+    function deleteData() {
+      const name = document.getElementById('adminName').value.trim();
+      const notice = document.getElementById('adminNotice');
+
+      const index = data.findIndex(d => d.name === name);
+      if (index !== -1) {
+        data.splice(index, 1);
+        notice.style.color = 'orange';
+        notice.innerText = '해당 인원이 삭제되었습니다.';
+      } else {
+        notice.style.color = 'red';
+        notice.innerText = '삭제할 인원이 존재하지 않습니다.';
+      }
+      updateWorkerList();
+    }
+
+    function updateWorkerList() {
+      const listBox = document.getElementById('workerList');
+      listBox.innerHTML = data.map(d => `<div><strong>${d.name}</strong> - ${d.company}, ${d.time}, ${d.car}, ${d.color}</div>`).join('');
+    }
+  </script>
 </body>
 </html>
