@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>기린인력 차량정보 조회</title>
+  <title>기린인력 차반정보 조회</title>
   <style>
     body { font-family: sans-serif; background: #f0f0f0; padding: 2rem; text-align: center; }
     .container { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
@@ -16,7 +15,7 @@
 </head>
 <body>
   <div class="container">
-    <h2>기린인력 차량정보 조회</h2>
+    <h2>기린인력 차반정보 조회</h2>
     <input type="text" id="nameInput" placeholder="이름을 입력하세요">
     <br>
     <button onclick="lookup()">조회하기</button>
@@ -32,11 +31,11 @@
 
       <select id="adminCompany">
         <option disabled selected>업체명 선택</option>
-        <option>코스원</option><option>예그리나</option><option>유씨엘</option><option>헵스켐</option><option>이시스코스메틱</option>
-        <option>뷰랜코리아</option><option>화인글로벌랩</option><option>에스투제약</option><option>피엘코스메틱</option><option>네이처인트로</option>
-        <option>리즈코스</option><option>비알코스</option><option>대한생명바이오</option><option>에스앤제이</option><option>잉글우드랩</option>
+        <option>코스원</option><option>예그리나</option><option>유씨엘</option><option>헭스케몬</option><option>이시스코스메틱</option>
+        <option>비엘안코리아</option><option>화인글로버르래브</option><option>에스투제약</option><option>피엘코스메틱</option><option>네이쳐인트로</option>
+        <option>리즈코스</option><option>비알코스</option><option>대한생명바이오</option><option>에스애에이</option><option>잆글우드래브</option>
         <option>ES코스메틱</option><option>코스페이스</option><option>유니클로버</option><option>NFC</option><option>중앙바이오텍</option>
-        <option>하이게인안테나</option><option>동인전기</option><option>삼성포리머</option><option>탭코리아</option><option>엔피엠텍</option><option>제일바이오</option>
+        <option>하이게인안테나</option><option>동인전기</option><option>삼성포리머</option><option>탭코리아</option><option>엔피엔텍</option><option>제일바이오</option>
       </select>
 
       <select id="adminTime">
@@ -45,13 +44,13 @@
       </select>
 
       <select id="adminCar">
-        <option disabled selected>차량번호 선택</option>
+        <option disabled selected>차반번호 선택</option>
         <option>77보9040</option><option>75보7727</option><option>71마1375</option><option>71다1165</option><option>71보6549</option>
         <option>72두8789</option><option>2721(하이게인)</option><option>8232(남동)</option><option>15人탕기사</option>
       </select>
 
       <select id="adminColor">
-        <option disabled selected>차량 색상 선택</option>
+        <option disabled selected>차반 색상 선택</option>
         <option>노란색</option><option>파란색</option><option>은색</option><option>빨간색</option>
       </select>
 
@@ -75,7 +74,7 @@
         resultBox.innerHTML = `
           <strong>업체명:</strong> ${result.company}<br>
           <strong>출발시간:</strong> ${result.time}<br>
-          <strong>차량번호:</strong> ${result.car}<br>
+          <strong>차반번호:</strong> ${result.car}<br>
           <strong>색상:</strong> ${result.color}
         `;
         resultBox.style.display = 'block';
@@ -92,7 +91,7 @@
         panel.style.display = 'block';
         updateWorkerList();
       } else {
-        alert("비밀번호가 틀렸습니다.");
+        alert("비밀번호가 틀린입니다.");
       }
     }
 
@@ -101,26 +100,6 @@
     }
 
     function addData() {
-  const name = document.getElementById('nameInput').value;
-  const company = document.getElementById('companyInput').value;
-  const time = document.getElementById('timeInput').value;
-  const car = document.getElementById('carInput').value;
-  const color = document.getElementById('colorInput').value;
-
-  fetch("https://script.google.com/macros/s/AKfycbwuk8uiHDsi3_ykH3wupFno9IMEhHJjkJckHOgW_5fOaCgNnAtxDpgKdmW9znHOCBZiaQ/exec?name=" + encodeURIComponent(name) + 
-        "&company=" + encodeURIComponent(company) + 
-        "&time=" + encodeURIComponent(time) + 
-        "&car=" + encodeURIComponent(car) + 
-        "&color=" + encodeURIComponent(color))
-    .then(response => response.text())
-    .then(result => {
-      console.log("추가 결과:", result);
-      fetchData(); // 추가 후 목록 새로고침
-    })
-    .catch(error => {
-      console.error("추가 실패:", error);
-    });
-
       const name = document.getElementById('adminName').value.trim();
       const company = document.getElementById('adminCompany').value;
       const time = document.getElementById('adminTime').value;
@@ -134,17 +113,23 @@
         return;
       }
 
-      const index = data.findIndex(d => d.name === name);
-      if (index !== -1) {
-        data[index] = { name, company, time, car, color };
-        notice.style.color = 'blue';
-        notice.innerText = '기존 정보가 수정되었습니다.';
-      } else {
-        data.push({ name, company, time, car, color });
-        notice.style.color = 'green';
-        notice.innerText = '새 정보가 추가되었습니다.';
-      }
-      updateWorkerList();
+      fetch("https://script.google.com/macros/s/AKfycbwuk8uiHDsi3_ykH3wupFno9IMEhHJjkJckHOgW_5fOaCgNnAtxDpgKdmW9znHOCBZiaQ/exec?name=" + encodeURIComponent(name) +
+        "&company=" + encodeURIComponent(company) +
+        "&time=" + encodeURIComponent(time) +
+        "&car=" + encodeURIComponent(car) +
+        "&color=" + encodeURIComponent(color))
+        .then(response => response.text())
+        .then(result => {
+          console.log("추가 결과:", result);
+          notice.style.color = 'green';
+          notice.innerText = '시트에 반영되었습니다.';
+          fetchData();
+        })
+        .catch(error => {
+          console.error("추가 실패:", error);
+          notice.style.color = 'red';
+          notice.innerText = '추가 실패: ' + error;
+        });
     }
 
     function deleteData() {
@@ -155,27 +140,31 @@
         data.splice(index, 1);
         notice.style.color = 'orange';
         notice.innerText = '해당 인원이 삭제되었습니다.';
+        updateWorkerList();
       } else {
         notice.style.color = 'red';
         notice.innerText = '삭제할 인원이 존재하지 않습니다.';
       }
-      updateWorkerList();
     }
 
     function updateWorkerList() {
       const listBox = document.getElementById('workerList');
       listBox.innerHTML = data.map(d => `<div><strong>${d.name}</strong> - ${d.company}, ${d.time}, ${d.car}, ${d.color}</div>`).join('');
     }
-  
-fetch("https://script.google.com/macros/s/AKfycbwuk8uiHDsi3_ykH3wupFno9IMEhHJjkJckHOgW_5fOaCgNnAtxDpgKdmW9znHOCBZiaQ/exec")
-  .then(response => response.json())
-  .then(json => {
-    data = json;
-  })
-  .catch(error => {
-    console.error("데이터 불러오기 실패:", error);
-  });
 
-</script>
+    function fetchData() {
+      fetch("https://script.google.com/macros/s/AKfycbwuk8uiHDsi3_ykH3wupFno9IMEhHJjkJckHOgW_5fOaCgNnAtxDpgKdmW9znHOCBZiaQ/exec")
+        .then(response => response.json())
+        .then(json => {
+          data = json;
+          updateWorkerList();
+        })
+        .catch(error => {
+          console.error("데이터 불러오기 실패:", error);
+        });
+    }
+
+    fetchData();
+  </script>
 </body>
 </html>
