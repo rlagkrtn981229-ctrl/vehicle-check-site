@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>기린인력 차반정보 조회</title>
+  <title>기린인력 차량정보 조회</title>
   <style>
     body { font-family: sans-serif; background: #f0f0f0; padding: 2rem; text-align: center; }
     .container { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
@@ -10,12 +10,12 @@
     .result { margin-top: 1.5rem; background: #eee; padding: 1rem; border-radius: 0.5rem; }
     .admin-panel { margin-top: 2rem; padding: 1rem; background: #e0f7fa; border-radius: 1rem; display: none; position: relative; }
     .close-btn { position: absolute; top: 10px; right: 20px; background: red; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
-    .worker-list { text-align: left; max-height: 200px; overflow-y: auto; background: #fff; border: 1px solid #ccc; padding: 1rem; margin-top: 1rem; border-radius: 0.5rem; }
+    .worker-list { text-align: left; max-height: 200px; overflow-y: auto; background: #fff; border: 1px solid #ccc; padding: 1rem; margin-top: 1rem; border-radius: 0.5rem; font-size: 0.9rem; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>기린인력 차반정보 조회</h2>
+    <h2>기린인력 차량정보 조회</h2>
     <input type="text" id="nameInput" placeholder="이름을 입력하세요">
     <br>
     <button onclick="lookup()">조회하기</button>
@@ -28,36 +28,31 @@
       <button class="close-btn" onclick="closeAdmin()">×</button>
       <h3>🚧 관리자 정보 추가/수정/삭제</h3>
       <input type="text" id="adminName" placeholder="이름">
-
       <select id="adminCompany">
         <option disabled selected>업체명 선택</option>
-        <option>코스원</option><option>예그리나</option><option>유씨엘</option><option>헭스케몬</option><option>이시스코스메틱</option>
-        <option>비엘안코리아</option><option>화인글로버르래브</option><option>에스투제약</option><option>피엘코스메틱</option><option>네이쳐인트로</option>
-        <option>리즈코스</option><option>비알코스</option><option>대한생명바이오</option><option>에스애에이</option><option>잆글우드래브</option>
+        <option>코스원</option><option>예그리나</option><option>유씨엘</option><option>헵스켐</option><option>이시스코스메틱</option>
+        <option>비엘안코리아</option><option>화인글로벌랩</option><option>에스투제약</option><option>피엘코스메틱</option><option>네이처인트로</option>
+        <option>리즈코스</option><option>비알코스</option><option>대한생명바이오</option><option>에스앤제이</option><option>잉글우드랩</option>
         <option>ES코스메틱</option><option>코스페이스</option><option>유니클로버</option><option>NFC</option><option>중앙바이오텍</option>
-        <option>하이게인안테나</option><option>동인전기</option><option>삼성포리머</option><option>탭코리아</option><option>엔피엔텍</option><option>제일바이오</option>
+        <option>하이게인안테나</option><option>동인전기</option><option>삼성포리머</option><option>탭코리아</option><option>엔피엠텍</option><option>제일바이오</option>
       </select>
-
       <select id="adminTime">
         <option disabled selected>출발시간 선택</option>
         <option>07:00</option><option>07:30</option><option>08:00</option>
       </select>
-
       <select id="adminCar">
-        <option disabled selected>차반번호 선택</option>
+        <option disabled selected>차번호 선택</option>
         <option>77보9040</option><option>75보7727</option><option>71마1375</option><option>71다1165</option><option>71보6549</option>
         <option>72두8789</option><option>2721(하이게인)</option><option>8232(남동)</option><option>15人탕기사</option>
       </select>
-
       <select id="adminColor">
-        <option disabled selected>차반 색상 선택</option>
+        <option disabled selected>차번 색상 선택</option>
         <option>노란색</option><option>파란색</option><option>은색</option><option>빨간색</option>
       </select>
-
       <button onclick="addData()">추가/수정</button>
-      <button onclick="deleteData()" style="background: #f44336; color: white;">삭제</button>
+      <button onclick="deleteSelected()" style="background: #f44336; color: white;">선택 삭제</button>
       <div id="adminNotice" style="margin-top: 1rem; color: green;"></div>
-      <h4 style="margin-top: 2rem;">👥 현재 등록된 근로자 목록</h4>
+      <h4 style="margin-top: 2rem; font-size: 1rem; font-weight: bold;">👥 현재 등록된 근로자 목록</h4>
       <div class="worker-list" id="workerList"></div>
     </div>
   </div>
@@ -65,18 +60,31 @@
   <script>
     let data = [];
 
+    function formatTime(rawTime) {
+      if (!rawTime) return '미입력';
+      if (typeof rawTime === 'number') {
+        const totalMinutes = Math.round(rawTime * 24 * 60);
+        const hour = Math.floor(totalMinutes / 60);
+        const minute = totalMinutes % 60;
+        return `${String(hour).padStart(2, '0')}시${String(minute).padStart(2, '0')}분`;
+      }
+      if (typeof rawTime === 'string' && rawTime.includes(':')) {
+        const parts = rawTime.split(':');
+        if (parts.length === 2) {
+          return `${parts[0].padStart(2, '0')}시${parts[1].padStart(2, '0')}분`;
+        }
+      }
+      return '미입력';
+    }
+
     function lookup() {
       const nameInput = document.getElementById('nameInput').value.trim();
       const result = data.find(d => d.name === nameInput);
       const resultBox = document.getElementById('resultBox');
 
       if (result) {
-        resultBox.innerHTML = `
-          <strong>업체명:</strong> ${result.company}<br>
-          <strong>출발시간:</strong> ${result.time}<br>
-          <strong>차반번호:</strong> ${result.car}<br>
-          <strong>색상:</strong> ${result.color}
-        `;
+        const time = formatTime(result.time);
+        resultBox.innerHTML = `<strong>업체명:</strong> ${result.company}<br><strong>출발시간:</strong> ${time}<br><strong>차량번호:</strong> ${result.car}<br><strong>색상:</strong> ${result.color}`;
         resultBox.style.display = 'block';
       } else {
         resultBox.innerHTML = "해당 이름의 정보를 찾을 수 없습니다.";
@@ -87,11 +95,11 @@
     function checkPassword() {
       const input = document.getElementById('adminPass').value;
       const panel = document.getElementById('adminPanel');
-      if (input === '1234') {
+      if (input === 'rlfls1101') {
         panel.style.display = 'block';
         updateWorkerList();
       } else {
-        alert("비밀번호가 틀린입니다.");
+        alert("비밀번호가 틀립니다.");
       }
     }
 
@@ -107,49 +115,58 @@
       const color = document.getElementById('adminColor').value;
       const notice = document.getElementById('adminNotice');
 
-      if (!name || !company || !time || !car || !color) {
+      if (!name || company.includes('선택') || time.includes('선택') || car.includes('선택') || color.includes('선택')) {
         notice.style.color = 'red';
-        notice.innerText = '모든 항목을 입력 또는 선택하세요.';
+        notice.innerText = '모든 항목을 정확히 입력 또는 선택하세요.';
         return;
       }
 
       fetch("https://script.google.com/macros/s/AKfycbwuk8uiHDsi3_ykH3wupFno9IMEhHJjkJckHOgW_5fOaCgNnAtxDpgKdmW9znHOCBZiaQ/exec?name=" + encodeURIComponent(name) +
         "&company=" + encodeURIComponent(company) +
-        "&time=" + encodeURIComponent(time) +
+        "&time=" + encodeURIComponent(time.trim()) +
         "&car=" + encodeURIComponent(car) +
         "&color=" + encodeURIComponent(color))
         .then(response => response.text())
         .then(result => {
-          console.log("추가 결과:", result);
           notice.style.color = 'green';
           notice.innerText = '시트에 반영되었습니다.';
           fetchData();
         })
         .catch(error => {
-          console.error("추가 실패:", error);
           notice.style.color = 'red';
           notice.innerText = '추가 실패: ' + error;
         });
     }
 
-    function deleteData() {
-      const name = document.getElementById('adminName').value.trim();
+    function deleteSelected() {
+      const checked = document.querySelectorAll('input[name="deleteChk"]:checked');
+      const names = Array.from(checked).map(c => c.value);
       const notice = document.getElementById('adminNotice');
-      const index = data.findIndex(d => d.name === name);
-      if (index !== -1) {
-        data.splice(index, 1);
-        notice.style.color = 'orange';
-        notice.innerText = '해당 인원이 삭제되었습니다.';
-        updateWorkerList();
-      } else {
+
+      if (names.length === 0) {
         notice.style.color = 'red';
-        notice.innerText = '삭제할 인원이 존재하지 않습니다.';
+        notice.innerText = '삭제할 근로자를 선택하세요.';
+        return;
       }
+
+      names.forEach(name => {
+        const index = data.findIndex(d => d.name === name);
+        if (index !== -1) {
+          data.splice(index, 1);
+        }
+      });
+
+      notice.style.color = 'orange';
+      notice.innerText = '선택된 근로자가 삭제되었습니다.';
+      updateWorkerList();
     }
 
     function updateWorkerList() {
       const listBox = document.getElementById('workerList');
-      listBox.innerHTML = data.map(d => `<div><strong>${d.name}</strong> - ${d.company}, ${d.time}, ${d.car}, ${d.color}</div>`).join('');
+      listBox.innerHTML = data.map(d => {
+        const time = formatTime(d.time);
+        return `<div><input type="checkbox" name="deleteChk" value="${d.name}"> <strong>${d.name}</strong> - ${d.company}, ${time}, ${d.car}, ${d.color}</div>`;
+      }).join('');
     }
 
     function fetchData() {
