@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 채널 (스프레드시트 연동)</title>
+  <style>
+    body { font-family: sans-serif; background: #f4f4f4; text-align: center; padding: 2rem; }
+    .box { background: white; padding: 2rem; max-width: 800px; margin: auto; border-radius: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    input, button, select { padding: 0.5rem; margin: 0.2rem; width: 90%; max-width: 200px; }
+    table { width: 100%; margin-top: 1rem; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; font-size: 0.9rem; }
+    td input { width: 100%; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>🔒 관리자 전용</h2>
+    <input type="password" id="adminPass" placeholder="비밀번호 입력">
+    <button onclick="checkPassword()">확인</button>
+
+    <div id="adminPanel" style="display:none;">
+      <h3>🚐 전체 차량 인원 목록</h3>
+      <table>
+        <thead>
+          <tr><th>이름</th><th>업체</th><th>시간</th><th>차량</th><th>색상</th></tr>
+        </thead>
+        <tbody id="dataTable"></tbody>
+      </table>
+
+      <h3 style="margin-top:2rem;">➕ 인원 추가</h3>
+      <input id="newName" placeholder="이름">
+      <input id="newCompany" placeholder="업체">
+      <input id="newTime" placeholder="시간">
+      <input id="newCar" placeholder="차량번호">
+      <input id="newColor" placeholder="차량 색상">
+      <button onclick="addEntry()">추가</button>
+    </div>
+  </div>
+
+  <script>
+    const PASSWORD = "1234";
+    let data = [];
+
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwuk8uiHDsi3_ykH3wupFno9IMEhHJjkJckHOgW_5fOaCgNnAtxDpgKdmW9znHOCBZiaQ/exec";
+
+    function checkPassword() {
+      const input = document.getElementById('adminPass').value;
+      if (input === PASSWORD) {
+        document.getElementById('adminPanel').style.display = 'block';
+        fetchData();
+      } else {
+        alert("비밀번호가 틀렸습니다.");
+      }
+    }
+
+    function fetchData() {
+      fetch(SCRIPT_URL)
+        .then(res => res.json())
+        .then(json => {
+          data = json;
+          fillTable();
+        })
+        .catch(err => alert("불러오기 실패: " + err));
+    }
+
+    function fillTable() {
+      const table = document.getElementById('dataTable');
+      table.innerHTML = "";
+      data.forEach((d, i) => {
+        table.innerHTML += `
+          <tr>
+            <td>${d.name}</td>
+            <td>${d.company}</td>
+            <td>${d.time}</td>
+            <td>${d.car}</td>
+            <td>${d.color}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function addEntry() {
+      const name = document.getElementById('newName').value.trim();
+      const company = document.getElementById('newCompany').value.trim();
+      const time = document.getElementById('newTime').value.trim();
+      const car = document.getElementById('newCar').value.trim();
+      const color = document.getElementById('newColor').value.trim();
+
+      if (name && company && time && car && color) {
+        const url = `${SCRIPT_URL}?name=${encodeURIComponent(name)}&company=${encodeURIComponent(company)}&time=${encodeURIComponent(time)}&car=${encodeURIComponent(car)}&color=${encodeURIComponent(color)}`;
+        fetch(url)
+          .then(response => response.text())
+          .then(result => {
+            alert("추가 완료: " + result);
+            fetchData(); // 새로고침
+            // 입력값 초기화
+            document.getElementById('newName').value = "";
+            document.getElementById('newCompany').value = "";
+            document.getElementById('newTime').value = "";
+            document.getElementById('newCar').value = "";
+            document.getElementById('newColor').value = "";
+          })
+          .catch(err => alert("에러 발생: " + err));
+      } else {
+        alert("모든 항목을 입력해 주세요.");
+      }
+    }
+  </script>
+</body>
+</html>
