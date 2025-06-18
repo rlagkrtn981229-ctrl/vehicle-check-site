@@ -4,14 +4,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>관리자 채널 (스프레드시트 연동)</title>
+  <title>관리자 채널 (삭제 기능 포함)</title>
   <style>
     body { font-family: sans-serif; background: #f4f4f4; text-align: center; padding: 2rem; }
-    .box { background: white; padding: 2rem; max-width: 800px; margin: auto; border-radius: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .box { background: white; padding: 2rem; max-width: 900px; margin: auto; border-radius: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     input, button, select { padding: 0.5rem; margin: 0.2rem; width: 90%; max-width: 200px; }
     table { width: 100%; margin-top: 1rem; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 0.5rem; font-size: 0.9rem; }
-    td input { width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; font-size: 0.9rem; text-align: center; }
+    td input { width: 90%; }
+    #loading { display: none; color: gray; margin-top: 1rem; }
   </style>
 </head>
 <body>
@@ -19,30 +20,39 @@
     <h2>🔒 관리자 전용</h2>
     <input type="password" id="adminPass" placeholder="비밀번호 입력">
     <button onclick="checkPassword()">확인</button>
+    <div id="loading">로딩 중...</div>
 
     <div id="adminPanel" style="display:none;">
-      <h3>🚐 전체 차량 인원 목록</h3>
+      <h3 style="margin-top:2rem;">➕ 인원 추가</h3>
+      <input id="newName" placeholder="이름">
+      <select id="newCompany">
+        <option disabled selected>업체 선택</option>
+        <option>코스원</option><option>유씨엘</option><option>예그리나</option><option>헵스켐</option>
+      </select>
+      <input id="newTime" placeholder="시간 (예: 07:00)">
+      <select id="newCar">
+        <option disabled selected>차량 선택</option>
+        <option>77보9040</option><option>75보7727</option><option>71마1375</option>
+      </select>
+      <select id="newColor">
+        <option disabled selected>색상 선택</option>
+        <option>노란색</option><option>파란색</option><option>은색</option><option>빨간색</option>
+      </select>
+      <button onclick="addEntry()">추가</button>
+
+      <h3 style="margin-top:2rem;">🚐 전체 차량 인원 목록</h3>
       <table>
         <thead>
-          <tr><th>이름</th><th>업체</th><th>시간</th><th>차량</th><th>색상</th></tr>
+          <tr><th>이름</th><th>업체</th><th>시간</th><th>차량</th><th>색상</th><th>관리</th></tr>
         </thead>
         <tbody id="dataTable"></tbody>
       </table>
-
-      <h3 style="margin-top:2rem;">➕ 인원 추가</h3>
-      <input id="newName" placeholder="이름">
-      <input id="newCompany" placeholder="업체">
-      <input id="newTime" placeholder="시간">
-      <input id="newCar" placeholder="차량번호">
-      <input id="newColor" placeholder="차량 색상">
-      <button onclick="addEntry()">추가</button>
     </div>
   </div>
 
   <script>
     const PASSWORD = "1234";
     let data = [];
-
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwuk8uiHDsi3_ykH3wupFno9IMEhHJjkJckHOgW_5fOaCgNnAtxDpgKdmW9znHOCBZiaQ/exec";
 
     function checkPassword() {
@@ -56,13 +66,18 @@
     }
 
     function fetchData() {
+      document.getElementById('loading').style.display = 'block';
       fetch(SCRIPT_URL)
         .then(res => res.json())
         .then(json => {
           data = json;
           fillTable();
+          document.getElementById('loading').style.display = 'none';
         })
-        .catch(err => alert("불러오기 실패: " + err));
+        .catch(err => {
+          alert("불러오기 실패: " + err);
+          document.getElementById('loading').style.display = 'none';
+        });
     }
 
     function fillTable() {
@@ -71,40 +86,57 @@
       data.forEach((d, i) => {
         table.innerHTML += `
           <tr>
-            <td>${d.name}</td>
-            <td>${d.company}</td>
-            <td>${d.time}</td>
-            <td>${d.car}</td>
-            <td>${d.color}</td>
+            <td><input value="${d.name}" onchange="updateValue(${i}, 'name', this.value)"></td>
+            <td><input value="${d.company}" onchange="updateValue(${i}, 'company', this.value)"></td>
+            <td><input value="${d.time}" onchange="updateValue(${i}, 'time', this.value)"></td>
+            <td><input value="${d.car}" onchange="updateValue(${i}, 'car', this.value)"></td>
+            <td><input value="${d.color}" onchange="updateValue(${i}, 'color', this.value)"></td>
+            <td><button onclick="deleteRow(${i})">삭제</button></td>
           </tr>
         `;
       });
     }
 
+    function updateValue(index, field, value) {
+      data[index][field] = value;
+    }
+
+    function deleteRow(index) {
+      const nameToDelete = data[index].name;
+      if (!confirm(`정말 '${nameToDelete}'을 삭제하시겠습니까?`)) return;
+
+      fetch(`${SCRIPT_URL}?mode=delete&name=${encodeURIComponent(nameToDelete)}`)
+        .then(res => res.text())
+        .then(msg => {
+          alert(msg);
+          fetchData();
+        })
+        .catch(err => alert("삭제 중 오류 발생: " + err));
+    }
+
     function addEntry() {
       const name = document.getElementById('newName').value.trim();
-      const company = document.getElementById('newCompany').value.trim();
+      const company = document.getElementById('newCompany').value;
       const time = document.getElementById('newTime').value.trim();
-      const car = document.getElementById('newCar').value.trim();
-      const color = document.getElementById('newColor').value.trim();
+      const car = document.getElementById('newCar').value;
+      const color = document.getElementById('newColor').value;
 
-      if (name && company && time && car && color) {
+      if (name && !company.includes("선택") && time && !car.includes("선택") && !color.includes("선택")) {
         const url = `${SCRIPT_URL}?name=${encodeURIComponent(name)}&company=${encodeURIComponent(company)}&time=${encodeURIComponent(time)}&car=${encodeURIComponent(car)}&color=${encodeURIComponent(color)}`;
         fetch(url)
-          .then(response => response.text())
-          .then(result => {
-            alert("추가 완료: " + result);
-            fetchData(); // 새로고침
-            // 입력값 초기화
+          .then(res => res.text())
+          .then(msg => {
+            alert("추가 완료: " + msg);
+            fetchData();
             document.getElementById('newName').value = "";
-            document.getElementById('newCompany').value = "";
+            document.getElementById('newCompany').selectedIndex = 0;
             document.getElementById('newTime').value = "";
-            document.getElementById('newCar').value = "";
-            document.getElementById('newColor').value = "";
+            document.getElementById('newCar').selectedIndex = 0;
+            document.getElementById('newColor').selectedIndex = 0;
           })
-          .catch(err => alert("에러 발생: " + err));
+          .catch(err => alert("에러: " + err));
       } else {
-        alert("모든 항목을 입력해 주세요.");
+        alert("모든 항목을 정확히 입력하세요.");
       }
     }
   </script>
