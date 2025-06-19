@@ -54,6 +54,14 @@
       color: gray;
       font-size: 0.9rem;
     }
+    .admin-link {
+      margin-top: 2rem;
+      display: inline-block;
+      font-size: 0.9rem;
+      color: #555;
+      text-decoration: underline;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -63,6 +71,7 @@
     <button onclick="search()">조회</button>
     <div id="loading" class="loading" style="display:none;">조회 중...</div>
     <div id="result"></div>
+    <a class="admin-link" href="admin.html">🔐 관리자 페이지 이동</a>
   </div>
 
   <script>
