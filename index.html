@@ -5,11 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>차량 인원 확인</title>
   <style>
-    body { font-family: sans-serif; background: #f0f0f0; text-align: center; padding: 2rem; }
-    .container { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-    input, button { padding: 0.5rem; margin-top: 1rem; width: 80%; font-size: 1rem; }
-    #result { margin-top: 2rem; }
-    .label { font-weight: bold; }
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background: linear-gradient(to right, #e0eafc, #cfdef3);
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+      max-width: 450px;
+      margin: auto;
+      transition: all 0.3s ease;
+    }
+    input {
+      padding: 0.7rem;
+      margin-top: 1rem;
+      width: 85%;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
+    }
+    button {
+      padding: 0.7rem;
+      width: 90%;
+      font-size: 1rem;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      margin-top: 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #357ab8;
+    }
+    #result {
+      margin-top: 2rem;
+      text-align: left;
+    }
+    .label {
+      font-weight: bold;
+      color: #444;
+    }
+    .loading {
+      color: gray;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
@@ -17,39 +61,43 @@
     <h2>🚐 차량 정보 조회</h2>
     <input type="text" id="nameInput" placeholder="이름을 입력하세요">
     <button onclick="search()">조회</button>
+    <div id="loading" class="loading" style="display:none;">조회 중...</div>
     <div id="result"></div>
   </div>
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbym9gO78IsRnVkTugImT35cjxtufVXVtYz0cTnpmhPmebRJRcfKhNYwjLlMcIo-WEAQcw/exec";
 
-    function search() {
+    async function search() {
       const name = document.getElementById('nameInput').value.trim();
-      if (!name) {
-        alert("이름을 입력하세요.");
-        return;
-      }
+      const resultDiv = document.getElementById('result');
+      const loading = document.getElementById('loading');
+      resultDiv.innerHTML = '';
+      if (!name) return alert("이름을 입력하세요.");
 
-      fetch(SCRIPT_URL)
-        .then(res => res.json())
-        .then(data => {
-          const person = data.find(d => d.name === name);
-          const resultDiv = document.getElementById('result');
-          if (person) {
-            resultDiv.innerHTML = `
-              <p><span class="label">이름:</span> ${person.name}</p>
-              <p><span class="label">업체:</span> ${person.company}</p>
-              <p><span class="label">차량 번호:</span> ${person.car}</p>
-              <p><span class="label">색상:</span> ${person.color}</p>
-              <p><span class="label">출발 시간:</span> ${formatTime(person.time)}</p>
-            `;
-          } else {
-            resultDiv.innerHTML = `<p>일치하는 인원이 없습니다.</p>`;
-          }
-        })
-        .catch(err => {
-          alert("조회 실패: " + err);
-        });
+      loading.style.display = 'block';
+
+      try {
+        const res = await fetch(SCRIPT_URL);
+        const data = await res.json();
+        const person = data.find(d => d.name === name);
+
+        if (person) {
+          resultDiv.innerHTML = `
+            <p><span class="label">이름:</span> ${person.name}</p>
+            <p><span class="label">업체:</span> ${person.company}</p>
+            <p><span class="label">차량 번호:</span> ${person.car}</p>
+            <p><span class="label">색상:</span> ${person.color}</p>
+            <p><span class="label">출발 시간:</span> ${formatTime(person.time)}</p>
+          `;
+        } else {
+          resultDiv.innerHTML = `<p>일치하는 인원이 없습니다.</p>`;
+        }
+      } catch (err) {
+        alert("조회 실패: " + err);
+      } finally {
+        loading.style.display = 'none';
+      }
     }
 
     function formatTime(rawTime) {
@@ -64,11 +112,10 @@
 
       if (typeof rawTime === 'string') {
         if (rawTime.includes(':')) {
-          const parts = rawTime.split(':');
-          if (parts.length === 2) {
-            return `${parts[0].padStart(2, '0')}시${parts[1].padStart(2, '0')}분`;
-          }
-        } else if (rawTime.includes('시') && rawTime.includes('분')) {
+          const [h, m] = rawTime.split(':');
+          return `${h.padStart(2, '0')}시${m.padStart(2, '0')}분`;
+        }
+        if (rawTime.includes('시') && rawTime.includes('분')) {
           return rawTime;
         }
       }

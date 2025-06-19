@@ -1,4 +1,3 @@
-<!-- 전체 HTML 소스 시작 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -14,6 +13,12 @@
     td input, td select { width: 90%; }
     .toggle-btn { cursor: pointer; font-weight: bold; background: #eee; }
     #loading { display: none; color: gray; margin-top: 1rem; }
+    .control-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
   </style>
 </head>
 <body>
@@ -43,7 +48,21 @@
       <button onclick="addEntry()">추가</button>
       <button onclick="deleteSelected()">선택 삭제</button>
 
-      <h3>🚐 차량 인원 목록</h3>
+      <div class="control-bar">
+        <h3 style="margin: 0;">🚐 차량 인원 목록</h3>
+        <div>
+          <select id="teamFilter" onchange="filterCompanyByTeam()">
+            <option disabled selected>팀 선택</option>
+            <option value="1팀">1팀</option>
+            <option value="2팀">2팀</option>
+            <option value="3팀">3팀</option>
+            <option value="4팀">4팀</option>
+            <option value="전체">전체 보기</option>
+          </select>
+          <button onclick="toggleAllGroups()">전체 펼치기/접기</button>
+        </div>
+      </div>
+
       <table>
         <thead>
           <tr>
@@ -60,6 +79,13 @@
     const PASSWORD = "1234";
     let data = [];
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbym9gO78IsRnVkTugImT35cjxtufVXVtYz0cTnpmhPmebRJRcfKhNYwjLlMcIo-WEAQcw/exec";
+
+    const teamCompanies = {
+      "1팀": ["코스원", "헵스켐", "이스", "예그리나", "탭코리아", "하이게인", "세경산업", "케이엠에코"],
+      "2팀": ["에스앤제이", "ES코스메틱", "코스페이스", "네이처인트로", "BR코스", "동인전기", "제일바이오", "중앙바이오"],
+      "3팀": ["에스투제약", "피엘코스메틱", "자연수", "리즈코스", "대한생명", "유니클로버"],
+      "4팀": ["신스틸", "뷰랜코리아", "잉글우드랩", "UCL", "스킨애플", "NFC", "삼성포리머", "엔피엠텍"]
+    };
 
     function checkPassword() {
       if (document.getElementById('adminPass').value === PASSWORD) {
@@ -94,6 +120,29 @@
       companies.forEach(c => select.innerHTML += `<option>${c}</option>`);
     }
 
+    function filterCompanyByTeam() {
+      const selectedTeam = document.getElementById('teamFilter').value;
+      const allRows = document.querySelectorAll('[data-company]');
+      const allHeaders = document.querySelectorAll('.toggle-btn');
+
+      if (selectedTeam === "전체") {
+        allRows.forEach(r => r.style.display = '');
+        allHeaders.forEach(h => h.style.display = '');
+        return;
+      }
+
+      const companiesToShow = teamCompanies[selectedTeam];
+      allRows.forEach(row => {
+        const company = row.dataset.company;
+        row.style.display = companiesToShow.includes(company) ? '' : 'none';
+      });
+      allHeaders.forEach(row => {
+        const text = row.innerText;
+        const company = text.split("▶ ")[1]?.split(" ")[0];
+        row.style.display = companiesToShow.includes(company) ? '' : 'none';
+      });
+    }
+
     function fillCarOptions() {
       const select = document.getElementById('newCar');
       const cars = [...new Set(data.map(d => d.car))];
@@ -115,7 +164,7 @@
         const count = grouped[company].filter(e => e.name.trim()).length;
 
         table.innerHTML += `
-          <tr class="toggle-btn" onclick="toggleGroup('${groupId}')">
+          <tr class="toggle-btn" onclick="toggleGroup('${groupId}')" data-company="${company}">
             <td colspan="7">
               ▶ ${company} (${count}명) - 클릭하여 펼치기/접기
               <button onclick="event.stopPropagation(); updateGroup('${groupId}')">전체 수정</button>
@@ -125,7 +174,7 @@
 
         grouped[company].forEach(d => {
           table.innerHTML += `
-            <tr class="${groupId}" style="display:none;">
+            <tr class="${groupId}" data-company="${d.company}" style="display:none;">
               <td><input type="checkbox" class="rowCheckbox" data-index="${d.index}"></td>
               <td><input value="${d.name}" onchange="updateValue(${d.index}, 'name', this.value)"></td>
               <td><input value="${d.company}" onchange="updateValue(${d.index}, 'company', this.value)"></td>
@@ -151,6 +200,14 @@
       const rows = document.querySelectorAll(`.${groupId}`);
       rows.forEach(row => {
         row.style.display = row.style.display === "none" ? "" : "none";
+      });
+    }
+
+    function toggleAllGroups() {
+      const allRows = document.querySelectorAll('[class^="group-"]');
+      const shouldExpand = [...allRows].some(row => row.style.display === "none");
+      allRows.forEach(row => {
+        row.style.display = shouldExpand ? "" : "none";
       });
     }
 
@@ -227,4 +284,3 @@
   </script>
 </body>
 </html>
-<!-- 전체 HTML 소스 끝 -->
