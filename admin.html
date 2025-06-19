@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>관리자 채널 (삭제 기능 포함)</title>
+  <title>관리자 채널</title>
   <style>
     body { font-family: sans-serif; background: #f4f4f4; text-align: center; padding: 2rem; }
     .box { background: white; padding: 2rem; max-width: 900px; margin: auto; border-radius: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
@@ -23,13 +22,13 @@
     <div id="loading">로딩 중...</div>
 
     <div id="adminPanel" style="display:none;">
-      <h3 style="margin-top:2rem;">➕ 인원 추가</h3>
+      <h3>➕ 인원 추가</h3>
       <input id="newName" placeholder="이름">
       <select id="newCompany">
         <option disabled selected>업체 선택</option>
         <option>코스원</option><option>유씨엘</option><option>예그리나</option><option>헵스켐</option>
       </select>
-      <input id="newTime" placeholder="시간 (예: 07:00)">
+      <input id="newTime" placeholder="시간">
       <select id="newCar">
         <option disabled selected>차량 선택</option>
         <option>77보9040</option><option>75보7727</option><option>71마1375</option>
@@ -40,7 +39,7 @@
       </select>
       <button onclick="addEntry()">추가</button>
 
-      <h3 style="margin-top:2rem;">🚐 전체 차량 인원 목록</h3>
+      <h3>🚐 차량 인원 목록</h3>
       <table>
         <thead>
           <tr><th>이름</th><th>업체</th><th>시간</th><th>차량</th><th>색상</th><th>관리</th></tr>
@@ -51,13 +50,12 @@
   </div>
 
   <script>
-    const PASSWORD = "1101";
+    const PASSWORD = "1234";
     let data = [];
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwuk8uiHDsi3_ykH3wupFno9IMEhHJjkJckHOgW_5fOaCgNnAtxDpgKdmW9znHOCBZiaQ/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlvY4LK-UzhlEhZxidbgN-qNC0EDH99zy8zf1gXJF2_dnUy9DQ-HWwmLGKiQ1D8HIjRg/exec";
 
     function checkPassword() {
-      const input = document.getElementById('adminPass').value;
-      if (input === PASSWORD) {
+      if (document.getElementById('adminPass').value === PASSWORD) {
         document.getElementById('adminPanel').style.display = 'block';
         fetchData();
       } else {
@@ -91,7 +89,7 @@
             <td><input value="${d.time}" onchange="updateValue(${i}, 'time', this.value)"></td>
             <td><input value="${d.car}" onchange="updateValue(${i}, 'car', this.value)"></td>
             <td><input value="${d.color}" onchange="updateValue(${i}, 'color', this.value)"></td>
-            <td><button onclick="deleteRow(${i})">삭제</button></td>
+            <td><button onclick="updateRow(${i})">수정</button></td>
           </tr>
         `;
       });
@@ -101,17 +99,16 @@
       data[index][field] = value;
     }
 
-    function deleteRow(index) {
-      const nameToDelete = data[index].name;
-      if (!confirm(`정말 '${nameToDelete}'을 삭제하시겠습니까?`)) return;
-
-      fetch(`${SCRIPT_URL}?mode=delete&name=${encodeURIComponent(nameToDelete)}`)
+    function updateRow(index) {
+      const row = data[index];
+      const query = `mode=update&index=${index + 1}&name=${encodeURIComponent(row.name)}&company=${encodeURIComponent(row.company)}&time=${encodeURIComponent(row.time)}&car=${encodeURIComponent(row.car)}&color=${encodeURIComponent(row.color)}`;
+      fetch(`${SCRIPT_URL}?${query}`)
         .then(res => res.text())
         .then(msg => {
           alert(msg);
           fetchData();
         })
-        .catch(err => alert("삭제 중 오류 발생: " + err));
+        .catch(err => alert("수정 중 오류 발생: " + err));
     }
 
     function addEntry() {
@@ -122,7 +119,7 @@
       const color = document.getElementById('newColor').value;
 
       if (name && !company.includes("선택") && time && !car.includes("선택") && !color.includes("선택")) {
-        const url = `${SCRIPT_URL}?name=${encodeURIComponent(name)}&company=${encodeURIComponent(company)}&time=${encodeURIComponent(time)}&car=${encodeURIComponent(car)}&color=${encodeURIComponent(color)}`;
+        const url = `${SCRIPT_URL}?mode=add&name=${encodeURIComponent(name)}&company=${encodeURIComponent(company)}&time=${encodeURIComponent(time)}&car=${encodeURIComponent(car)}&color=${encodeURIComponent(color)}`;
         fetch(url)
           .then(res => res.text())
           .then(msg => {
