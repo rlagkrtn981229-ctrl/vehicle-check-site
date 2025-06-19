@@ -1,75 +1,80 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>기린인력 차량정보 조회</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>차량 인원 확인</title>
   <style>
-    body { font-family: sans-serif; background: #f0f0f0; padding: 2rem; text-align: center; }
-    .container { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 100%; width: 90%; margin: auto; }
-    input, button, select { padding: 0.7rem; margin-top: 0.5rem; width: 90%; font-size: 1rem; box-sizing: border-box; }
-    .result { margin-top: 1.5rem; background: #eee; padding: 1rem; border-radius: 0.5rem; }
-    .admin-link { margin-top: 2rem; display: block; font-size: 0.9rem; text-decoration: none; color: #007BFF; }
+    body { font-family: sans-serif; background: #f0f0f0; text-align: center; padding: 2rem; }
+    .container { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+    input, button { padding: 0.5rem; margin-top: 1rem; width: 80%; font-size: 1rem; }
+    #result { margin-top: 2rem; }
+    .label { font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>기린인력 차량정보 조회</h2>
+    <h2>🚐 차량 정보 조회</h2>
     <input type="text" id="nameInput" placeholder="이름을 입력하세요">
-    <br>
-    <button onclick="lookup()">조회하기</button>
-    <div class="result" id="resultBox" style="display:none;"></div>
-    <a class="admin-link" href="admin.html">🔒 관리자 페이지 이동</a>
+    <button onclick="search()">조회</button>
+    <div id="result"></div>
   </div>
 
   <script>
-    let data = [];
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbym9gO78IsRnVkTugImT35cjxtufVXVtYz0cTnpmhPmebRJRcfKhNYwjLlMcIo-WEAQcw/exec";
+
+    function search() {
+      const name = document.getElementById('nameInput').value.trim();
+      if (!name) {
+        alert("이름을 입력하세요.");
+        return;
+      }
+
+      fetch(SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+          const person = data.find(d => d.name === name);
+          const resultDiv = document.getElementById('result');
+          if (person) {
+            resultDiv.innerHTML = `
+              <p><span class="label">이름:</span> ${person.name}</p>
+              <p><span class="label">업체:</span> ${person.company}</p>
+              <p><span class="label">차량 번호:</span> ${person.car}</p>
+              <p><span class="label">색상:</span> ${person.color}</p>
+              <p><span class="label">출발 시간:</span> ${formatTime(person.time)}</p>
+            `;
+          } else {
+            resultDiv.innerHTML = `<p>일치하는 인원이 없습니다.</p>`;
+          }
+        })
+        .catch(err => {
+          alert("조회 실패: " + err);
+        });
+    }
 
     function formatTime(rawTime) {
       if (!rawTime) return '미입력';
+
       if (typeof rawTime === 'number') {
         const totalMinutes = Math.round(rawTime * 24 * 60);
         const hour = Math.floor(totalMinutes / 60);
         const minute = totalMinutes % 60;
         return `${String(hour).padStart(2, '0')}시${String(minute).padStart(2, '0')}분`;
       }
-      if (typeof rawTime === 'string' && rawTime.includes(':')) {
-        const parts = rawTime.split(':');
-        if (parts.length === 2) {
-          return `${parts[0].padStart(2, '0')}시${parts[1].padStart(2, '0')}분`;
+
+      if (typeof rawTime === 'string') {
+        if (rawTime.includes(':')) {
+          const parts = rawTime.split(':');
+          if (parts.length === 2) {
+            return `${parts[0].padStart(2, '0')}시${parts[1].padStart(2, '0')}분`;
+          }
+        } else if (rawTime.includes('시') && rawTime.includes('분')) {
+          return rawTime;
         }
       }
+
       return '미입력';
     }
-
-    function lookup() {
-      const nameInput = document.getElementById('nameInput').value.trim();
-      const result = data.find(d => d.name === nameInput);
-      const resultBox = document.getElementById('resultBox');
-
-      if (result) {
-        const time = formatTime(result.time);
-        resultBox.innerHTML = `<strong>업체명:</strong> ${result.company}<br><strong>출발시간:</strong> ${time}<br><strong>차량번호:</strong> ${result.car}<br><strong>색상:</strong> ${result.color}`;
-        resultBox.style.display = 'block';
-      } else {
-        resultBox.innerHTML = "해당 이름의 정보를 찾을 수 없습니다.";
-        resultBox.style.display = 'block';
-      }
-    }
-
-    function fetchData() {
-      fetch("https://script.google.com/macros/s/AKfycbyxvoHtb4tdVmK4nP8AelMqj-pMa2j4gMXg3xRxwGfmDwkwytWqt9zLhQqLVbSMTSd9Fg/exec")
-        .then(response => response.json())
-        .then(json => {
-          data = json;
-        })
-        .catch(error => {
-          console.error("데이터 불러오기 실패:", error);
-        });
-    }
-
-    fetchData();
   </script>
 </body>
 </html>
