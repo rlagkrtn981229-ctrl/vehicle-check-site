@@ -57,6 +57,7 @@
             <option value="2팀">2팀</option>
             <option value="3팀">3팀</option>
             <option value="4팀">4팀</option>
+             <option value="5팀">5팀</option>
             <option value="전체">전체 보기</option>
           </select>
           <button onclick="toggleAllGroups()">전체 펼치기/접기</button>
@@ -78,13 +79,14 @@
   <script>
     const PASSWORD = "1234";
     let data = [];
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbym9gO78IsRnVkTugImT35cjxtufVXVtYz0cTnpmhPmebRJRcfKhNYwjLlMcIo-WEAQcw/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqhKyaFeQBm0zeuauE0j7fB3jBKgprCAI0nPEnlaTQCbZP7VvrFza6ywie8e3lNf342Q/exec";
 
     const teamCompanies = {
       "1팀": ["코스원", "헵스켐", "이시스", "예그리나", "탭코리아", "하이게인", "세경산업", "케이엠에코"],
       "2팀": ["에스앤제이", "ES코스메틱", "코스페이스", "네이처인트로", "BR코스", "동인전기", "제일바이오", "중앙바이오"],
       "3팀": ["에스투제약", "피엘코스메틱", "자연수", "리즈코스", "대한생명", "유니클로버"],
-      "4팀": ["신스틸", "화인", "뷰랜코리아", "잉글우드랩", "UCL", "스킨애플", "NFC", "삼성포리머", "엔피엠텍"]
+      "4팀": ["신스틸", "화인", "뷰랜코리아", "잉글우드랩", "UCL", "스킨애플", "NFC", "삼성포리머", "엔피엠텍"],
+      "5팀": ["SLP코스메틱"]
     };
 
     function checkPassword() {
